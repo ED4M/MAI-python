@@ -3,18 +3,15 @@ import numpy as np
 import cx_Oracle
 import os
 import config
-from pprint import pprint
 
-from sqlalchemy import create_engine
-engine = create_engine('sqlite://', echo=False)
-
+print('Reading csv-file...')
 # cp1251
 df = pd.read_csv("import.csv",sep=';',encoding="cp1251") 
-
 
 mapped = df[(df['ADDRESS'] != None) & (df['ADDRESS'].str.contains("Москва"))]
 mapped = mapped.replace(np.nan, '', regex=True)
 
+print('Writing data to Excel-file...')
 writer = pd.ExcelWriter('export.xlsx', engine='xlsxwriter')
 mapped.to_excel(writer, 'Sheet1')
 writer.save()
@@ -30,6 +27,7 @@ conn = cx_Oracle.connect(
     encoding=config.encoding)
 curs = conn.cursor()
 
+print('Exporting data to Oracle DB...')
 for item in mapped.values:
   curs.execute(
     "INSERT INTO FNS_BASE (KOD, NAIMK, NAIM_FULL, ADDRESS, COMMENTS) VALUES (:KOD, :NAIMK, :NAIM_FULL, :ADDRESS, :COMMENTS)",
